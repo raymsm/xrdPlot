@@ -256,7 +256,7 @@ export default function Home() {
                   />
                 </Chart>
               </ResponsiveContainer>
-              <div className="flex items-center space-x-2">
+              
                 <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
                 <Slider
                   id="y-scale"
@@ -266,7 +266,7 @@ export default function Home() {
                   onValueChange={(value) => setYAxisMax(value[0])}
                 />
                 <span>{yAxisMax}</span>
-              </div>
+              
               <label className="inline-flex items-center space-x-2">
                 <input
                   type="checkbox"
