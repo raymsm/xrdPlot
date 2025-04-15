@@ -53,8 +53,13 @@ export default function Home() {
             return { angle: Number(angle), intensity: Number(intensity) };
           })
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
-        setXrdData(parsedData);
-        setPeakData(parsedData.map((point) => point.intensity));
+
+        // Sample the data to reduce the number of points
+        const sampleRate = 10; // Show every 10th point
+        const sampledData = parsedData.filter((_, index) => index % sampleRate === 0);
+
+        setXrdData(sampledData);
+        setPeakData(sampledData.map((point) => point.intensity));
       };
       reader.readAsText(file);
     }
