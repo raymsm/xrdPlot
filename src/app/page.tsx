@@ -12,27 +12,32 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from "@/components/ui/chart";
 import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
 import { Toaster } from "@/components/ui/toaster";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface XRDDataPoint {
   angle: number;
   intensity: number;
 }
 
+interface IdentifiedPhase {
+  name: string;
+  crystalStructure: string;
+  confidence: number;
+  twoTheta?: number;
+}
+
 export default function Home() {
   const [xrdData, setXrdData] = useState<XRDDataPoint[]>([]);
   const [peakData, setPeakData] = useState<number[]>([]);
-  const [identifiedPhases, setIdentifiedPhases] = useState<
-    { name: string; crystalStructure: string; confidence: number }[]
-  >([]);
+  const [identifiedPhases, setIdentifiedPhases] = useState<IdentifiedPhase[]>([]);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -44,7 +49,7 @@ export default function Home() {
           .split("\n")
           .map((row) => {
             const [angle, intensity] = row.split(",").map(Number);
-            return { angle, intensity };
+            return { angle: Number(angle), intensity: Number(intensity) };
           })
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
         setXrdData(parsedData);
@@ -52,6 +57,13 @@ export default function Home() {
       };
       reader.readAsText(file);
     }
+  };
+
+  const assignFakeTwoTheta = (phases: { name: string; crystalStructure: string; confidence: number }[]) => {
+    return phases.map((phase, index) => ({
+      ...phase,
+      twoTheta: 20 + index * 5, // Generate fake 2theta values
+    }));
   };
 
   const handleIdentifyPhases = async () => {
@@ -66,7 +78,9 @@ export default function Home() {
     setLoading(true);
     try {
       const result = await identifyMaterialPhases({ peakData });
-      setIdentifiedPhases(result.identifiedPhases);
+      // Assign fake 2theta values to the identified phases
+      const phasesWithTwoTheta = assignFakeTwoTheta(result.identifiedPhases);
+      setIdentifiedPhases(phasesWithTwoTheta);
       toast({
         title: "Material phases identified",
         description: "Analysis complete.",
@@ -102,11 +116,10 @@ export default function Home() {
             <CardTitle>XRD Plot</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-              <Chart data={xrdData}>
+              <Chart width={600} height={400} data={xrdData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="angle" />
-                <YAxis />
+                <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
+                <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
                 <Tooltip />
                 <Legend />
                 <Line
@@ -116,7 +129,6 @@ export default function Home() {
                   name="Intensity"
                 />
               </Chart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
@@ -160,6 +172,11 @@ export default function Home() {
                         <Badge variant="secondary">Crystal Structure:</Badge>{" "}
                         {phase.crystalStructure}
                       </p>
+                       {phase.twoTheta && (
+                          <p>
+                            <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
+                          </p>
+                        )}
                       <p>
                         <Badge variant="secondary">Confidence:</Badge>{" "}
                         {(phase.confidence * 100).toFixed(2)}%
