@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
 import { Toaster, toast } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-import * as htmlToImage from 'html-to-image';
-import { Chart } from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
 import { downsample } from "@/lib/utils";
+
+Chart.register(...registerables);
 
 interface XRDDataPoint {
   angle: number;
@@ -159,13 +160,17 @@ export default function Home() {
                 title: {
                   display: true,
                   text: '2θ (°)'
-                }
+                },
+                min: xrdData.length > 0 ? Math.min(...xrdData.map(item => item.angle)) : undefined,
+                max: xrdData.length > 0 ? Math.max(...xrdData.map(item => item.angle)) : undefined,
               },
               y: {
                 title: {
                   display: true,
                   text: 'Intensity'
-                }
+                },
+                min: xrdData.length > 0 ? Math.min(...xrdData.map(item => item.intensity)) : undefined,
+                max: xrdData.length > 0 ? Math.max(...xrdData.map(item => item.intensity)) : undefined,
               }
             },
             plugins: {
