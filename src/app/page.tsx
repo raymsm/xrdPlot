@@ -8,7 +8,8 @@ import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
-import { Toaster, useToast } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/hooks/use-toast";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -329,3 +330,4 @@ export default function Home() {
     </>
   );
 }
+
