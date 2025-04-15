@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
+import * as htmlToImage from 'html-to-image';
 
 interface XRDDataPoint {
   angle: number;
@@ -39,6 +40,7 @@ export default function Home() {
   const [identifiedPhases, setIdentifiedPhases] = useState<IdentifiedPhase[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const chartRef = useRef(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -104,6 +106,36 @@ export default function Home() {
     }
   };
 
+  const savePlotAsPng = async () => {
+    if (chartRef.current) {
+      try {
+        const dataUrl = await htmlToImage.toPng(chartRef.current);
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'xrd_plot.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({
+          title: "Plot saved",
+          description: "XRD plot saved as PNG.",
+        });
+      } catch (error) {
+        console.error("Error saving plot:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to save XRD plot. Try again.",
+        });
+      }
+    } else {
+      toast({
+        title: "No plot to save",
+        description: "Please upload XRD data first.",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 flex flex-col gap-4">
       <Toaster />
@@ -137,6 +169,9 @@ export default function Home() {
                 />
               </Chart>
             </ResponsiveContainer>
+            <Button onClick={savePlotAsPng} className="w-full mt-4">
+              Save Plot as PNG
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -173,22 +208,22 @@ export default function Home() {
                       key={index}
                       className="mb-2 p-2 rounded-md border shadow-sm"
                     >
-                      <div>
+                      <p>
                         <Badge variant="secondary">Name:</Badge> {phase.name}
-                      </div>
-                      <div>
+                      </p>
+                      <p>
                         <Badge variant="secondary">Crystal Structure:</Badge>{" "}
                         {phase.crystalStructure}
-                      </div>
+                      </p>
                       {phase.twoTheta && (
-                        <div>
+                        <p>
                           <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
-                        </div>
+                        </p>
                       )}
-                      <div>
+                      <p>
                         <Badge variant="secondary">Confidence:</Badge>{" "}
                         {(phase.confidence * 100).toFixed(2)}%
-                      </div>
+                      </p>
                     </div>
                   ))}
                 </div>

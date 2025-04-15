@@ -42,6 +42,7 @@
     "date-fns": "^3.6.0",
     "firebase": "^11.3.0",
     "genkit": "^1.0.4",
+    "html-to-image": "*",
     "lucide-react": "^0.475.0",
     "next": "15.2.3",
     "patch-package": "^8.0.0",
