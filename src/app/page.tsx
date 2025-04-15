@@ -18,7 +18,7 @@ import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster, toast } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import * as htmlToImage from 'html-to-image';
 
@@ -31,7 +31,7 @@ interface IdentifiedPhase {
   name: string;
   crystalStructure: string;
   confidence: number;
-  twoTheta?: number;
+  twoTheta: number;
 }
 
 export default function Home() {
@@ -72,7 +72,9 @@ export default function Home() {
 
   const assignFakeTwoTheta = (phases: { name: string; crystalStructure: string; confidence: number }[]) => {
     return phases.map((phase, index) => ({
-      ...phase,
+      name: phase.name,
+      crystalStructure: phase.crystalStructure,
+      confidence: phase.confidence,
       twoTheta: 20 + index * 5, // Generate fake 2theta values
     }));
   };
@@ -151,7 +153,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {plotVisible && peakData && peakData.length > 1 && (
+      {plotVisible && xrdData && xrdData.length > 1 && (
         <Card>
           <CardHeader>
             <CardTitle>XRD Plot</CardTitle>
@@ -208,7 +210,7 @@ export default function Home() {
                 <div className="p-2">
                   {identifiedPhases.map((phase, index) => (
                     <div key={index} className="mb-2 p-2 rounded-md border">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-col md:flex-row gap-2">
                         <div>
                           <Badge variant="secondary">Name:</Badge> {phase.name}
                         </div>
@@ -217,9 +219,9 @@ export default function Home() {
                           {phase.crystalStructure}
                         </div>
                       </div>
-                      <div className="mt-1 flex flex-wrap gap-2">
+                      <div className="flex flex-col md:flex-row gap-2">
                         <div>
-                          <Badge variant="secondary">2θ:</Badge> {phase.twoTheta?.toFixed(2)}°
+                          <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
                         </div>
                         <div>
                           <Badge variant="secondary">Confidence:</Badge>
