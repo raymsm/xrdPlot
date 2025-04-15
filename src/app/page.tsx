@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,7 +40,9 @@ export default function Home() {
   const [identifiedPhases, setIdentifiedPhases] = useState<IdentifiedPhase[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const chartRef = useRef(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [plotVisible, setPlotVisible] = useState(false);
+
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,6 +64,7 @@ export default function Home() {
 
         setXrdData(sampledData);
         setPeakData(sampledData.map((point) => point.intensity));
+        setPlotVisible(true); // Set plot visibility to true after data is loaded
       };
       reader.readAsText(file);
     }
@@ -148,12 +151,12 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {xrdData && xrdData.length > 0 && (
+      {plotVisible && xrdData && xrdData.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>XRD Plot</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent ref={chartRef}>
             <ResponsiveContainer width="100%" height={400}>
               <Chart data={xrdData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -208,22 +211,22 @@ export default function Home() {
                       key={index}
                       className="mb-2 p-2 rounded-md border shadow-sm"
                     >
-                      <p>
+                      <div>
                         <Badge variant="secondary">Name:</Badge> {phase.name}
-                      </p>
-                      <p>
-                        <Badge variant="secondary">Crystal Structure:</Badge>{" "}
+                      </div>
+                      <div>
+                        <Badge variant="secondary">Crystal Structure:</Badge>
                         {phase.crystalStructure}
-                      </p>
+                      </div>
                       {phase.twoTheta && (
-                        <p>
+                        <div>
                           <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
-                        </p>
+                        </div>
                       )}
-                      <p>
-                        <Badge variant="secondary">Confidence:</Badge>{" "}
+                      <div>
+                        <Badge variant="secondary">Confidence:</Badge>
                         {(phase.confidence * 100).toFixed(2)}%
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>
