@@ -26,7 +26,7 @@ import {
 import { Line } from 'chart.js';
 import { downsample } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
-import { ResponsiveContainer } from "recharts";
+import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, LineChart, ChartProps } from "recharts";
 
 ChartJS.register(
   CategoryScale,
@@ -51,6 +51,19 @@ interface IdentifiedPhase {
   confidence: number;
   twoTheta: number;
 }
+
+interface ChartWrapperProps extends ChartProps {
+  data: any[];
+  children: React.ReactNode;
+}
+
+const Chart = ({ data, children }: ChartWrapperProps) => {
+  return (
+    <LineChart data={data}>
+      {children}
+    </LineChart>
+  );
+};
 
 export default function Home() {
   const [xrdData, setXrdData] = useState<XRDDataPoint[]>([]);
@@ -216,12 +229,10 @@ export default function Home() {
       
         
           
-            
-              Upload XRD Data
-            
-            
-              <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
-            
+            <CardTitle>Upload XRD Data</CardTitle>
+          
+          
+            <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
           
         
       
@@ -230,9 +241,21 @@ export default function Home() {
         
           
             
-              
-                <Line data={chartData} options={chartOptions} ref={chartRef} />
-              
+              <ResponsiveContainer width="100%" height={400}>
+                <Chart data={xrdData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
+                  <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
+                  <RechartsTooltip />
+                  <RechartsLegend />
+                  <Line
+                    type="monotone"
+                    dataKey="intensity"
+                    stroke="hsl(var(--primary))"
+                    name="Intensity"
+                  />
+                </Chart>
+              </ResponsiveContainer>
               <div className="flex items-center space-x-2">
                 <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
                 <Slider
@@ -260,11 +283,11 @@ export default function Home() {
             
           
         
-      )}
+      
 
       
         
-          Material Phase Identification
+          <CardTitle>Material Phase Identification</CardTitle>
         
         
           <Button
