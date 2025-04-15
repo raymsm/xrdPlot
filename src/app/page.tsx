@@ -140,7 +140,7 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4 flex flex-col gap-4">
+    
       <Toaster />
       <Card>
         <CardHeader>
@@ -200,41 +200,40 @@ export default function Home() {
           </Button>
 
           {identifiedPhases.length > 0 && (
-            <div className="mt-4">
+            
               <h3 className="text-lg font-semibold mb-2">
                 Identified Phases:
               </h3>
               <ScrollArea className="h-[200px] w-full rounded-md border">
-                <div className="p-2">
+                
                   {identifiedPhases.map((phase, index) => (
-                    <div
-                      key={index}
-                      className="mb-2 p-2 rounded-md border shadow-sm"
-                    >
-                      <div>
-                        <Badge variant="secondary">Name:</Badge> {phase.name}
-                      </div>
-                      <div>
-                        <Badge variant="secondary">Crystal Structure:</Badge>
-                        {phase.crystalStructure}
-                      </div>
-                      {phase.twoTheta && (
-                        <div>
+                    
+                      
+                        
+                          <Badge variant="secondary">Name:</Badge> {phase.name}
+                        
+                        
+                          <Badge variant="secondary">Crystal Structure:</Badge>
+                          {phase.crystalStructure}
+                        
+                      
+                        
                           <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
-                        </div>
-                      )}
-                      <div>
-                        <Badge variant="secondary">Confidence:</Badge>
-                        {(phase.confidence * 100).toFixed(2)}%
-                      </div>
-                    </div>
+                        
+                      
+                        
+                          <Badge variant="secondary">Confidence:</Badge>
+                          {(phase.confidence * 100).toFixed(2)}%
+                        
+                      
+                    
                   ))}
-                </div>
+                
               </ScrollArea>
-            </div>
+            
           )}
         </CardContent>
       </Card>
-    </div>
+    
   );
 }
