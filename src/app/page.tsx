@@ -4,16 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Chart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "@/components/ui/chart";
 import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +11,8 @@ import { Icons } from "@/components/icons";
 import { Toaster, toast } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import * as htmlToImage from 'html-to-image';
+import { Chart } from 'chart.js/auto';
+import { downsample } from "@/lib/utils";
 
 interface XRDDataPoint {
   angle: number;
@@ -40,8 +32,9 @@ export default function Home() {
   const [identifiedPhases, setIdentifiedPhases] = useState<IdentifiedPhase[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const chartRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLCanvasElement>(null);
   const [plotVisible, setPlotVisible] = useState(false);
+  const chartInstance = useRef<Chart | null>(null);
 
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,18 +50,16 @@ export default function Home() {
             return { angle: Number(angle), intensity: Number(intensity) };
           })
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
-
-          // Sample the data to reduce the number of points
-          const sampleRate = 20; // Adjust this value to control the level of downsampling
-          parsedData = parsedData.filter((_, index) => index % sampleRate === 0);
-          
-          setXrdData(parsedData);
-          setPeakData(parsedData.map((point) => point.intensity));
-          setPlotVisible(true); // Set plot visibility to true after data is loaded
+        
+        const sampledData = downsample(parsedData, 300);
+        setXrdData(sampledData);
+        setPeakData(sampledData.map((point) => point.intensity));
+        setPlotVisible(true);
       };
       reader.readAsText(file);
     }
   };
+
 
   const assignFakeTwoTheta = (phases: { name: string; crystalStructure: string; confidence: number }[]) => {
     return phases.map((phase, index) => ({
@@ -114,7 +105,7 @@ export default function Home() {
   const savePlotAsPng = async () => {
     if (chartRef.current) {
       try {
-        const dataUrl = await htmlToImage.toPng(chartRef.current);
+        const dataUrl = chartRef.current.toDataURL("image/png");
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = 'xrd_plot.png';
@@ -141,6 +132,66 @@ export default function Home() {
     }
   };
 
+  useEffect(() => {
+    if (chartRef.current && xrdData.length > 0) {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+
+      const ctx = chartRef.current.getContext('2d');
+      if (ctx) {
+        chartInstance.current = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'Intensity',
+              data: xrdData.map(item => ({ x: item.angle, y: item.intensity })),
+              borderColor: 'hsl(var(--primary))',
+              backgroundColor: 'rgba(0, 188, 212, 0.2)',
+              tension: 0.4,
+              pointRadius: 0,
+            }]
+          },
+          options: {
+            scales: {
+              x: {
+                type: 'linear',
+                title: {
+                  display: true,
+                  text: '2θ (°)'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Intensity'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true,
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              },
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          }
+        });
+      }
+    }
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [xrdData]);
+
+
   return (
     <div className="container mx-auto p-4 flex flex-col gap-4">
       <Toaster />
@@ -158,22 +209,8 @@ export default function Home() {
           <CardHeader>
             <CardTitle>XRD Plot</CardTitle>
           </CardHeader>
-          <CardContent ref={chartRef}>
-            <ResponsiveContainer width="100%" height={400}>
-              <Chart data={xrdData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
-                <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="intensity"
-                  stroke="hsl(var(--primary))"
-                  name="Intensity"
-                />
-              </Chart>
-            </ResponsiveContainer>
+          <CardContent>
+            <canvas ref={chartRef} />
             <Button onClick={savePlotAsPng} className="w-full mt-4">
               Save Plot as PNG
             </Button>
@@ -212,19 +249,19 @@ export default function Home() {
                     <div key={index} className="mb-2 p-2 rounded-md border">
                       <div className="flex flex-col md:flex-row gap-2">
                         <div>
-                           Name: {phase.name}
+                          Name: {phase.name}
                         </div>
                         <div>
-                           Crystal Structure:
+                          Crystal Structure:
                           {phase.crystalStructure}
                         </div>
                       </div>
                       <div className="flex flex-col md:flex-row gap-2">
                         <div>
-                           2θ: {phase.twoTheta.toFixed(2)}°
+                          2θ: {phase.twoTheta.toFixed(2)}°
                         </div>
                         <div>
-                           Confidence:
+                          Confidence:
                           {(phase.confidence * 100).toFixed(2)}%
                         </div>
                       </div>
