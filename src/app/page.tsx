@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +26,7 @@ import {
 import { Line } from 'chart.js';
 import { downsample } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
-import { ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, LineChart, ChartProps } from "recharts";
+import { Chart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, ChartProps } from 'recharts';
 
 ChartJS.register(
   CategoryScale,
@@ -56,14 +56,6 @@ interface ChartWrapperProps extends ChartProps {
   data: any[];
   children: React.ReactNode;
 }
-
-const Chart = ({ data, children }: ChartWrapperProps) => {
-  return (
-    <LineChart data={data}>
-      {children}
-    </LineChart>
-  );
-};
 
 export default function Home() {
   const [xrdData, setXrdData] = useState<XRDDataPoint[]>([]);
@@ -228,12 +220,12 @@ export default function Home() {
       <Toaster />
       
         
-          
+          <CardHeader>
             <CardTitle>Upload XRD Data</CardTitle>
-          
-          
+          </CardHeader>
+          <CardContent>
             <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
-          
+          </CardContent>
         
       
 
@@ -242,7 +234,7 @@ export default function Home() {
           
             
               <ResponsiveContainer width="100%" height={400}>
-                <Chart data={xrdData}>
+                <LineChart data={xrdData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
                   <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
@@ -254,7 +246,7 @@ export default function Home() {
                     stroke="hsl(var(--primary))"
                     name="Intensity"
                   />
-                </Chart>
+                </LineChart>
               </ResponsiveContainer>
               
                 <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
@@ -287,41 +279,53 @@ export default function Home() {
 
       
         
-          <CardTitle>Material Phase Identification</CardTitle>
-        
-        
-          <Button
-            onClick={handleIdentifyPhases}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                Identifying...
-              </>
-            ) : (
-              "Identify Material Phases"
-            )}
-          </Button>
+          <CardHeader>
+            <CardTitle>Material Phase Identification</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleIdentifyPhases}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? (
+                <>
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  Identifying...
+                </>
+              ) : (
+                "Identify Material Phases"
+              )}
+            </Button>
 
-          {identifiedPhases.length > 0 && (
-            
+            {identifiedPhases.length > 0 && (
               
-                Identified Phases:
+                
+                  Identified Phases:
+                
+                <ScrollArea className="h-[200px] w-full rounded-md border">
+                  
+                    {identifiedPhases.map((phase, index) => (
+                      
+                        
+                          {phase.name}
+                        
+                        
+                          {phase.crystalStructure}
+                        
+                        
+                           2θ: {phase.twoTheta.toFixed(2)}°
+                        
+                        
+                           {(phase.confidence * 100).toFixed(2)}%
+                        
+                      
+                    ))}
+                  
+                </ScrollArea>
               
-              <ScrollArea className="h-[200px] w-full rounded-md border">
-                
-                  {identifiedPhases.map((phase, index) => (
-                     phase.name}
-                       {phase.crystalStructure}
-                         {phase.twoTheta.toFixed(2)}°
-                         {(phase.confidence * 100).toFixed(2)}%
-                  ))}
-                
-              </ScrollArea>
-            
-          )}
+            )}
+          </CardContent>
         
       
     
