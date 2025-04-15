@@ -10,10 +10,35 @@ import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
 import { Toaster, toast } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-import { Chart, registerables } from 'chart.js';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+  ScaleOptions,
+  LogarithmicScale,
+} from 'chart.js';
+import { Line } from 'chart.js';
 import { downsample } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { ResponsiveContainer } from "recharts";
 
-Chart.register(...registerables);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  LogarithmicScale,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 interface XRDDataPoint {
   angle: number;
@@ -35,8 +60,8 @@ export default function Home() {
   const { toast } = useToast();
   const chartRef = useRef<HTMLCanvasElement>(null);
   const [plotVisible, setPlotVisible] = useState(false);
-  const chartInstance = useRef<Chart | null>(null);
-
+  const [yAxisMax, setYAxisMax] = useState<number>(100); // Default Y-axis max value
+  const [logScale, setLogScale] = useState(false); // Log scale toggle
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,8 +76,11 @@ export default function Home() {
             return { angle: Number(angle), intensity: Number(intensity) };
           })
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
-        
-        const sampledData = downsample(parsedData, 300);
+
+        // Sample the data to reduce the number of points
+        const sampleRate = 10; // Show every 10th point
+        const sampledData = parsedData.filter((_, index) => index % sampleRate === 0);
+
         setXrdData(sampledData);
         setPeakData(sampledData.map((point) => point.intensity));
         setPlotVisible(true);
@@ -60,7 +88,6 @@ export default function Home() {
       reader.readAsText(file);
     }
   };
-
 
   const assignFakeTwoTheta = (phases: { name: string; crystalStructure: string; confidence: number }[]) => {
     return phases.map((phase, index) => ({
@@ -133,101 +160,113 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (chartRef.current && xrdData.length > 0) {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
+  const chartData = {
+    labels: xrdData.map(item => item.angle),
+    datasets: [
+      {
+        label: 'Intensity',
+        data: xrdData.map(item => item.intensity),
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
       }
+    ]
+  };
 
-      const ctx = chartRef.current.getContext('2d');
-      if (ctx) {
-        chartInstance.current = new Chart(ctx, {
-          type: 'line',
-          data: {
-            datasets: [{
-              label: 'Intensity',
-              data: xrdData.map(item => ({ x: item.angle, y: item.intensity })),
-              borderColor: 'hsl(var(--primary))',
-              backgroundColor: 'rgba(0, 188, 212, 0.2)',
-              tension: 0.4,
-              pointRadius: 0,
-            }]
-          },
-          options: {
-            scales: {
-              x: {
-                type: 'linear',
-                title: {
-                  display: true,
-                  text: '2θ (°)'
-                },
-                min: xrdData.length > 0 ? Math.min(...xrdData.map(item => item.angle)) : undefined,
-                max: xrdData.length > 0 ? Math.max(...xrdData.map(item => item.angle)) : undefined,
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: 'Intensity'
-                },
-                min: xrdData.length > 0 ? Math.min(...xrdData.map(item => item.intensity)) : undefined,
-                max: xrdData.length > 0 ? Math.max(...xrdData.map(item => item.intensity)) : undefined,
-              }
-            },
-            plugins: {
-              legend: {
-                display: true,
-              },
-              tooltip: {
-                mode: 'index',
-                intersect: false,
-              },
-            },
-            responsive: true,
-            maintainAspectRatio: false,
+  const chartOptions = {
+    scales: {
+      y: {
+        type: logScale ? 'logarithmic' : 'linear',
+        position: 'left',
+        max: yAxisMax,
+        ticks: {
+          callback: function(value: number | string) {
+            if (logScale) {
+              return Number(value).toExponential();
+            }
+            return value;
           }
-        });
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: '2θ (°)'
+        }
       }
-    }
-
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
-  }, [xrdData]);
+    },
+    plugins: {
+      title: {
+        display: true,
+        text: 'XRD Plot',
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: false,
+  };
 
 
   return (
-    <div className="container mx-auto p-4 flex flex-col gap-4">
+    
       <Toaster />
-      <Card>
-        <CardHeader>
-          <CardTitle>Upload XRD Data</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
-        </CardContent>
-      </Card>
+      
+        
+          
+            
+              Upload XRD Data
+            
+            
+              <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
+            
+          
+        
+      
 
       {plotVisible && xrdData && xrdData.length > 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>XRD Plot</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <canvas ref={chartRef} />
-            <Button onClick={savePlotAsPng} className="w-full mt-4">
-              Save Plot as PNG
-            </Button>
-          </CardContent>
-        </Card>
+        
+          
+            
+              
+                <Line data={chartData} options={chartOptions} ref={chartRef} />
+              
+              <div className="flex items-center space-x-2">
+                <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
+                <Slider
+                  id="y-scale"
+                  defaultValue={[yAxisMax]}
+                  max={1000}
+                  step={10}
+                  onValueChange={(value) => setYAxisMax(value[0])}
+                />
+                <span>{yAxisMax}</span>
+              </div>
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 text-blue-500 rounded"
+                  checked={logScale}
+                  onChange={(e) => setLogScale(e.target.checked)}
+                />
+                <span>Log Scale Y-Axis</span>
+              </label>
+
+              <Button onClick={savePlotAsPng} className="w-full mt-4">
+                Save Plot as PNG
+              </Button>
+            
+          
+        
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Material Phase Identification</CardTitle>
-        </CardHeader>
-        <CardContent>
+      
+        
+          Material Phase Identification
+        
+        
           <Button
             onClick={handleIdentifyPhases}
             disabled={loading}
@@ -244,40 +283,38 @@ export default function Home() {
           </Button>
 
           {identifiedPhases.length > 0 && (
-            <>
-              <h3 className="text-lg font-semibold mb-2">
+            
+              
                 Identified Phases:
-              </h3>
+              
               <ScrollArea className="h-[200px] w-full rounded-md border">
-                <div className="p-2">
+                
                   {identifiedPhases.map((phase, index) => (
-                    <div key={index} className="mb-2 p-2 rounded-md border">
-                      <div className="flex flex-col md:flex-row gap-2">
-                        <div>
-                          Name: {phase.name}
-                        </div>
-                        <div>
-                          Crystal Structure:
-                          {phase.crystalStructure}
-                        </div>
-                      </div>
-                      <div className="flex flex-col md:flex-row gap-2">
-                        <div>
-                          2θ: {phase.twoTheta.toFixed(2)}°
-                        </div>
-                        <div>
-                          Confidence:
-                          {(phase.confidence * 100).toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
+                    
+                      
+                        Name:
+                        <Badge variant="secondary">{phase.name}</Badge>
+                      
+                      
+                        Crystal Structure:
+                        <Badge variant="secondary">{phase.crystalStructure}</Badge>
+                      
+                      
+                        2θ:
+                        <Badge variant="secondary">{phase.twoTheta.toFixed(2)}°</Badge>
+                      
+                      
+                        Confidence:
+                        <Badge variant="secondary">{(phase.confidence * 100).toFixed(2)}%</Badge>
+                      
+                    
                   ))}
-                </div>
+                
               </ScrollArea>
-            </>
+            
           )}
-        </CardContent>
-      </Card>
-    </div>
+        
+      
+    
   );
 }
