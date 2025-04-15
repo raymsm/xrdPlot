@@ -116,7 +116,7 @@ export default function Home() {
             <CardTitle>XRD Plot</CardTitle>
           </CardHeader>
           <CardContent>
-              <Chart width={600} height={400} data={xrdData}>
+              <Chart width={800} height={400} data={xrdData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
                 <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
@@ -165,22 +165,22 @@ export default function Home() {
                       key={index}
                       className="mb-2 p-2 rounded-md border shadow-sm"
                     >
-                      <p>
+                      <div>
                         <Badge variant="secondary">Name:</Badge> {phase.name}
-                      </p>
-                      <p>
+                      </div>
+                      <div>
                         <Badge variant="secondary">Crystal Structure:</Badge>{" "}
                         {phase.crystalStructure}
-                      </p>
+                      </div>
                        {phase.twoTheta && (
-                          <p>
+                          <div>
                             <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
-                          </p>
+                          </div>
                         )}
-                      <p>
+                      <div>
                         <Badge variant="secondary">Confidence:</Badge>{" "}
                         {(phase.confidence * 100).toFixed(2)}%
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>
