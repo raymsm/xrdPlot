@@ -67,6 +67,7 @@ export default function Home() {
   const [plotVisible, setPlotVisible] = useState(false);
   const [yAxisMax, setYAxisMax] = useState<number>(100); // Default Y-axis max value
   const [logScale, setLogScale] = useState(false); // Log scale toggle
+  const [scaleApplied, setScaleApplied] = useState(false); // State to trigger chart re-render
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -89,6 +90,7 @@ export default function Home() {
         setXrdData(sampledData);
         setPeakData(sampledData.map((point) => point.intensity));
         setPlotVisible(true);
+        setScaleApplied(false); // Reset scale applied state on new file upload
       };
       reader.readAsText(file);
     }
@@ -214,6 +216,10 @@ export default function Home() {
     maintainAspectRatio: false,
   };
 
+  const handleApplyScale = () => {
+    setScaleApplied(true); // Trigger re-render with updated scale
+  };
+
 
   return (
     <>
@@ -235,10 +241,14 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={xrdData}>
+                <LineChart data={xrdData} key={scaleApplied ? 'log' + yAxisMax : 'linear' + yAxisMax}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
-                  <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
+                  <YAxis
+                      label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }}
+                      scale={logScale ? 'log' : 'linear'}
+                      domain={[0.1, yAxisMax]} // Ensure a minimum value for log scale
+                    />
                   <RechartsTooltip />
                   <RechartsLegend />
                   <Line
@@ -270,7 +280,9 @@ export default function Home() {
                   />
                   <span>Log Scale Y-Axis</span>
                 </label>
-
+                <Button onClick={handleApplyScale} className="w-full mt-2">
+                  Apply Scale Changes
+                </Button>
                 <Button onClick={savePlotAsPng} className="w-full mt-4">
                   Save Plot as PNG
                 </Button>
