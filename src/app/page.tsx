@@ -59,7 +59,7 @@ export default function Home() {
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
 
         // Sample the data to reduce the number of points
-        const sampleRate = 10; // Show every 10th point
+        const sampleRate = 20; // Show every 20th point
         const sampledData = parsedData.filter((_, index) => index % sampleRate === 0);
 
         setXrdData(sampledData);
@@ -140,7 +140,7 @@ export default function Home() {
   };
 
   return (
-    <>
+    <div className="container mx-auto p-4 flex flex-col gap-4">
       <Toaster />
       <Card>
         <CardHeader>
@@ -151,7 +151,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {plotVisible && xrdData && xrdData.length > 0 && (
+      {plotVisible && peakData && peakData.length > 1 && (
         <Card>
           <CardHeader>
             <CardTitle>XRD Plot</CardTitle>
@@ -234,6 +234,6 @@ export default function Home() {
           )}
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
