@@ -50,7 +50,7 @@ export default function Home() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
-        const parsedData: XRDDataPoint[] = content
+        let parsedData: XRDDataPoint[] = content
           .split("\n")
           .map((row) => {
             const [angle, intensity] = row.split(",").map(Number);
@@ -58,13 +58,13 @@ export default function Home() {
           })
           .filter((point) => !isNaN(point.angle) && !isNaN(point.intensity));
 
-        // Sample the data to reduce the number of points
-        const sampleRate = 20; // Show every 20th point
-        const sampledData = parsedData.filter((_, index) => index % sampleRate === 0);
-
-        setXrdData(sampledData);
-        setPeakData(sampledData.map((point) => point.intensity));
-        setPlotVisible(true); // Set plot visibility to true after data is loaded
+          // Sample the data to reduce the number of points
+          const sampleRate = 20; // Adjust this value to control the level of downsampling
+          parsedData = parsedData.filter((_, index) => index % sampleRate === 0);
+          
+          setXrdData(parsedData);
+          setPeakData(parsedData.map((point) => point.intensity));
+          setPlotVisible(true); // Set plot visibility to true after data is loaded
       };
       reader.readAsText(file);
     }
@@ -212,19 +212,19 @@ export default function Home() {
                     <div key={index} className="mb-2 p-2 rounded-md border">
                       <div className="flex flex-col md:flex-row gap-2">
                         <div>
-                          <Badge variant="secondary">Name:</Badge> {phase.name}
+                           Name: {phase.name}
                         </div>
                         <div>
-                          <Badge variant="secondary">Crystal Structure:</Badge>
+                           Crystal Structure:
                           {phase.crystalStructure}
                         </div>
                       </div>
                       <div className="flex flex-col md:flex-row gap-2">
                         <div>
-                          <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
+                           2θ: {phase.twoTheta.toFixed(2)}°
                         </div>
                         <div>
-                          <Badge variant="secondary">Confidence:</Badge>
+                           Confidence:
                           {(phase.confidence * 100).toFixed(2)}%
                         </div>
                       </div>
