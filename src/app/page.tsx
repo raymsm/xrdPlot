@@ -8,7 +8,7 @@ import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
-import { Toaster, toast } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import {
   Chart as ChartJS,
@@ -313,24 +313,10 @@ export default function Home() {
               <ScrollArea className="h-[200px] w-full rounded-md border">
                 
                   {identifiedPhases.map((phase, index) => (
-                    
-                      
-                        Name:
-                         {phase.name}
-                      
-                      
-                        Crystal Structure:
-                         {phase.crystalStructure}
-                      
-                      
-                        2θ:
+                     phase.name}
+                       {phase.crystalStructure}
                          {phase.twoTheta.toFixed(2)}°
-                      
-                      
-                        Confidence:
                          {(phase.confidence * 100).toFixed(2)}%
-                      
-                    
                   ))}
                 
               </ScrollArea>
