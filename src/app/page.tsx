@@ -12,6 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from "@/components/ui/chart";
 import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -116,7 +117,8 @@ export default function Home() {
             <CardTitle>XRD Plot</CardTitle>
           </CardHeader>
           <CardContent>
-              <Chart width={800} height={400} data={xrdData}>
+            <ResponsiveContainer width="100%" height={400}>
+              <Chart data={xrdData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="angle" label={{ value: '2θ (°)', position: 'insideBottom', offset: -5 }} />
                 <YAxis label={{ value: 'Intensity', angle: -90, position: 'insideLeft', offset: -15 }} />
@@ -129,6 +131,7 @@ export default function Home() {
                   name="Intensity"
                 />
               </Chart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       )}
@@ -172,11 +175,11 @@ export default function Home() {
                         <Badge variant="secondary">Crystal Structure:</Badge>{" "}
                         {phase.crystalStructure}
                       </div>
-                       {phase.twoTheta && (
-                          <div>
-                            <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
-                          </div>
-                        )}
+                      {phase.twoTheta && (
+                        <div>
+                          <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
+                        </div>
+                      )}
                       <div>
                         <Badge variant="secondary">Confidence:</Badge>{" "}
                         {(phase.confidence * 100).toFixed(2)}%
