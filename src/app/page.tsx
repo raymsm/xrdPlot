@@ -116,7 +116,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      {xrdData.length > 0 && (
+      {xrdData && xrdData.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>XRD Plot</CardTitle>
