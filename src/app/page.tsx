@@ -26,7 +26,7 @@ import {
 // import { Line } from 'chart.js'; // Corrected import path
 import { downsample } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
-import { Chart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, ChartProps } from 'recharts';
+import { Chart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, ChartProps, Line } from 'recharts';
 
 ChartJS.register(
   CategoryScale,
@@ -330,4 +330,3 @@ export default function Home() {
     </>
   );
 }
-
