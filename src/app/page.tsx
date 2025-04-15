@@ -210,20 +210,28 @@ export default function Home() {
                     
                       
                         
-                          <Badge variant="secondary">Name:</Badge> {phase.name}
+                          
+                            <Badge variant="secondary">Name:</Badge> {phase.name}
+                          
                         
                         
-                          <Badge variant="secondary">Crystal Structure:</Badge>
-                          {phase.crystalStructure}
+                          
+                            <Badge variant="secondary">Crystal Structure:</Badge>
+                            {phase.crystalStructure}
+                          
                         
                       
                         
-                          <Badge variant="secondary">2θ:</Badge> {phase.twoTheta.toFixed(2)}°
+                          
+                            <Badge variant="secondary">2θ:</Badge> {phase.twoTheta?.toFixed(2)}°
+                          
                         
                       
                         
-                          <Badge variant="secondary">Confidence:</Badge>
-                          {(phase.confidence * 100).toFixed(2)}%
+                          
+                            <Badge variant="secondary">Confidence:</Badge>
+                            {(phase.confidence * 100).toFixed(2)}%
+                          
                         
                       
                     
