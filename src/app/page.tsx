@@ -8,8 +8,7 @@ import { identifyMaterialPhases } from "@/ai/flows/identify-material-phases";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
-import { Toaster } from "@/components/ui/toaster";
-import { useToast } from "@/hooks/use-toast";
+import { Toaster, useToast } from "@/components/ui/toaster";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,7 +22,7 @@ import {
   ScaleOptions,
   LogarithmicScale,
 } from 'chart.js';
-import { Line } from 'chart.js';
+// import { Line } from 'chart.js'; // Corrected import path
 import { downsample } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Chart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, ResponsiveContainer, ChartProps } from 'recharts';
@@ -216,23 +215,24 @@ export default function Home() {
 
 
   return (
-    
+    <>
       <Toaster />
-      
-        
+      <div className="container mx-auto p-4 flex flex-col gap-4">
+        <Card>
           <CardHeader>
             <CardTitle>Upload XRD Data</CardTitle>
           </CardHeader>
           <CardContent>
             <Input type="file" accept=".csv, .txt" onChange={handleFileUpload} />
           </CardContent>
-        
-      
+        </Card>
 
-      {plotVisible && xrdData && xrdData.length > 1 && (
-        
-          
-            
+        {plotVisible && xrdData && xrdData.length > 1 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>XRD Plot</CardTitle>
+            </CardHeader>
+            <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={xrdData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -248,37 +248,37 @@ export default function Home() {
                   />
                 </LineChart>
               </ResponsiveContainer>
-              
-                <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
-                <Slider
-                  id="y-scale"
-                  defaultValue={[yAxisMax]}
-                  max={1000}
-                  step={10}
-                  onValueChange={(value) => setYAxisMax(value[0])}
-                />
-                <span>{yAxisMax}</span>
-              
-              <label className="inline-flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 text-blue-500 rounded"
-                  checked={logScale}
-                  onChange={(e) => setLogScale(e.target.checked)}
-                />
-                <span>Log Scale Y-Axis</span>
-              </label>
+              <div className="mt-4 flex flex-col gap-2">
+                <div>
+                  <label htmlFor="y-scale">Adjust Y-Axis Scale:</label>
+                  <Slider
+                    id="y-scale"
+                    defaultValue={[yAxisMax]}
+                    max={1000}
+                    step={10}
+                    onValueChange={(value) => setYAxisMax(value[0])}
+                  />
+                  <span>{yAxisMax}</span>
+                </div>
+                <label className="inline-flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 text-blue-500 rounded"
+                    checked={logScale}
+                    onChange={(e) => setLogScale(e.target.checked)}
+                  />
+                  <span>Log Scale Y-Axis</span>
+                </label>
 
-              <Button onClick={savePlotAsPng} className="w-full mt-4">
-                Save Plot as PNG
-              </Button>
-            
-          
-        
-      
+                <Button onClick={savePlotAsPng} className="w-full mt-4">
+                  Save Plot as PNG
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      
-        
+        <Card>
           <CardHeader>
             <CardTitle>Material Phase Identification</CardTitle>
           </CardHeader>
@@ -299,35 +299,33 @@ export default function Home() {
             </Button>
 
             {identifiedPhases.length > 0 && (
-              
-                
-                  Identified Phases:
-                
+              <div className="mt-4">
+                <h3>Identified Phases:</h3>
                 <ScrollArea className="h-[200px] w-full rounded-md border">
-                  
+                  <div className="p-2">
                     {identifiedPhases.map((phase, index) => (
-                      
+                      <div key={index} className="mb-2 p-2 rounded-md border">
                         
-                          {phase.name}
-                        
-                        
-                          {phase.crystalStructure}
+                          <Badge variant="secondary">{phase.name}</Badge>
                         
                         
-                           2θ: {phase.twoTheta.toFixed(2)}°
+                          <Badge variant="secondary">{phase.crystalStructure}</Badge>
                         
                         
-                           {(phase.confidence * 100).toFixed(2)}%
+                          <Badge variant="secondary">2θ: {phase.twoTheta.toFixed(2)}°</Badge>
                         
-                      
+                        
+                          <Badge variant="secondary">{(phase.confidence * 100).toFixed(2)}%</Badge>
+                        
+                      </div>
                     ))}
-                  
+                  </div>
                 </ScrollArea>
-              
+              </div>
             )}
           </CardContent>
-        
-      
-    
+        </Card>
+      </div>
+    </>
   );
 }
